@@ -223,7 +223,7 @@ class ShowEmotionGraph():
         self.model = AutoModelForSequenceClassification.from_pretrained("JasonJeon/KcElectra_sentiment")
         self.sent = sent
         
-    def sentence_predict():
+    def sentence_predict(self):
     # 입력된 문장 토크나이징
         tokenized_sent = tokenizer(
             sent,
