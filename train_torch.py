@@ -17,6 +17,8 @@ from pytorch_lightning.core.lightning import LightningModule
 from torch.utils.data import DataLoader, Dataset
 from transformers.optimization import AdamW, get_cosine_schedule_with_warmup
 from transformers import PreTrainedTokenizerFast, GPT2LMHeadModel, AutoTokenizer, AutoModelForSequenceClassification
+import cv2
+from google.colab.patches import cv2_imshow
 
 parser = argparse.ArgumentParser(description='Simsimi based on KoGPT-2')
 
@@ -264,6 +266,8 @@ def show_image(path_to_image, width=None, height=None):
 
 
 
+
+
 class ShowEmotionGraph():
     def __init__(self):
         self.tokenizer = AutoTokenizer.from_pretrained("beomi/KcELECTRA-base-v2022")
@@ -300,7 +304,8 @@ class ShowEmotionGraph():
         plt.legend(['감정'])
         plt.savefig('fig1.png', dpi=300)
         
-        show_image('fig1.png', width=300)
+        img = cv2.imread('fig1.png', cv2.IMREAD_COLOR)
+        cv2_imshow(img)
 
         #with Image.open('fig1.png') as img:
          #   img.show()
