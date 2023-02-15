@@ -225,8 +225,8 @@ class ShowEmotionGraph():
         
     def sentence_predict(self):
     # 입력된 문장 토크나이징
-        tokenized_sent = tokenizer(
-            sent,
+        tokenized_sent = self.tokenizer(
+            self.sent,
             return_tensors="pt",
             truncation=True,
             add_special_tokens=True,
