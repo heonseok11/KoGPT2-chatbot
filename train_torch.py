@@ -193,6 +193,7 @@ class KoGPT2Chat(LightningModule):
         return train_dataloader
 
     def chat(self, sent='0'):
+        graph = ShowEmotionGraph()
         tok = TOKENIZER
         sent_tokens = tok.tokenize(sent)
         with torch.no_grad():
@@ -201,6 +202,7 @@ class KoGPT2Chat(LightningModule):
                 if q == 'quit':
                     break
                 a = ''
+                print(graph.sentence_predict(q))
                 while 1:
                     input_ids = torch.LongTensor(tok.encode(U_TKN + q + SENT + sent + S_TKN + a)).unsqueeze(dim=0)
                     pred = self(input_ids)
@@ -228,13 +230,11 @@ class ShowEmotionGraph():
             max_length=128
         )
         
-    # 예측
-        with torch.no_grad():
-            outputs = model(
-                input_ids = tokenized_sent["input_ids"],
-                attention_mask=tokenized_sent["attention_mask"],
-                token_type_ids=tokenized_sent["token_type_ids"]
-            )
+        outputs = model(
+            input_ids = tokenized_sent["input_ids"],
+            attention_mask=tokenized_sent["attention_mask"],
+            token_type_ids=tokenized_sent["token_type_ids"])
+            
 
     # 결과 return
         logits = outputs[0]
@@ -247,9 +247,9 @@ class ShowEmotionGraph():
         for rect in bar:
             height = rect.get_height()
             plt.text(rect.get_x() + rect.get_width()/2.0, height, '%.1f' % height, ha='center', va='bottom', size = 10)
-            plt.title('감정 확률 분포포')
-            plt.legend(['감정'])
-            plt.show()
+        plt.title('감정 확률 분포포')
+        plt.legend(['감정'])
+        plt.show()
 
         print(prob)
         result = logits.argmax(-1)
