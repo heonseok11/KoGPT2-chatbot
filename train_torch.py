@@ -5,6 +5,7 @@ import logging
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib.image as img
 import torch
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint
@@ -193,18 +194,17 @@ class KoGPT2Chat(LightningModule):
         return train_dataloader
 
     def chat(self, sent='0'):
-        
+        graph = ShowEmotionGraph()
         tok = TOKENIZER
         sent_tokens = tok.tokenize(sent)
         with torch.no_grad():
             while 1:
                 q_temp = input("user > ")
-                
                 q = q_temp.strip()
                 if q == 'quit':
                     break
                 a = ''
-                print(ShowEmotionGraph(q_temp).sentence_predict())
+                print(graph.sentence_predict(q_temp))
                 while 1:
                     input_ids = torch.LongTensor(tok.encode(U_TKN + q + SENT + sent + S_TKN + a)).unsqueeze(dim=0)
                     pred = self(input_ids)
@@ -218,15 +218,14 @@ class KoGPT2Chat(LightningModule):
                 print("Simsimi > {}".format(a.strip()))
 
 class ShowEmotionGraph():
-    def __init__(self, sent):
+    def __init__(self):
         self.tokenizer = AutoTokenizer.from_pretrained("beomi/KcELECTRA-base-v2022")
         self.model = AutoModelForSequenceClassification.from_pretrained("JasonJeon/KcElectra_sentiment")
-        self.sent = sent
         
-    def sentence_predict(self):
+    def sentence_predict(self, sent):
     # 입력된 문장 토크나이징
         tokenized_sent = self.tokenizer(
-            self.sent,
+            sent,
             return_tensors="pt",
             truncation=True,
             add_special_tokens=True,
@@ -252,6 +251,9 @@ class ShowEmotionGraph():
             plt.text(rect.get_x() + rect.get_width()/2.0, height, '%.1f' % height, ha='center', va='bottom', size = 10)
         plt.title('감정 확률 분포포')
         plt.legend(['감정'])
+        plt.savefig('fig1.png', dpi=300)
+        ndarray = img.imread('fig1.png')
+        plt.imshow(ndarray)
         plt.show()
 
         print(prob)
