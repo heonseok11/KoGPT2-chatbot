@@ -8,6 +8,7 @@ import os
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.image as img
+from PIL import Image
 import torch
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint
@@ -266,8 +267,8 @@ class ShowEmotionGraph():
         plt.title('감정 확률 분포포')
         plt.legend(['감정'])
         plt.savefig('fig1.png', dpi=300)
-        ndarray = img.imread('fig1.png')
-        plt.imshow(ndarray)
+        with Image.open('fig1.png') as img:
+            img.show()
         plt.show()
 
         print(prob)
