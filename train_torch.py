@@ -233,7 +233,7 @@ class ShowEmotionGraph():
             max_length=128
         )
         
-        outputs = model(
+        outputs = self.model(
             input_ids = tokenized_sent["input_ids"],
             attention_mask=tokenized_sent["attention_mask"],
             token_type_ids=tokenized_sent["token_type_ids"])
