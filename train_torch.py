@@ -4,13 +4,14 @@ import logging
 
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 import torch
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.core.lightning import LightningModule
 from torch.utils.data import DataLoader, Dataset
 from transformers.optimization import AdamW, get_cosine_schedule_with_warmup
-from transformers import PreTrainedTokenizerFast, GPT2LMHeadModel
+from transformers import PreTrainedTokenizerFast, GPT2LMHeadModel, AutoTokenizer, AutoModelForSequenceClassification
 
 parser = argparse.ArgumentParser(description='Simsimi based on KoGPT-2')
 
@@ -212,6 +213,59 @@ class KoGPT2Chat(LightningModule):
                     a += gen.replace('▁', ' ')
                 print("Simsimi > {}".format(a.strip()))
 
+class ShowEmotionGraph():
+    def __init__(self):
+        self.tokenizer = AutoTokenizer.from_pretrained("beomi/KcELECTRA-base-v2022")
+        self.model = AutoModelForSequenceClassification.from_pretrained("JasonJeon/KcElectra_sentiment")
+        
+    def sentence_predict(sent):
+    # 입력된 문장 토크나이징
+        tokenized_sent = tokenizer(
+            sent,
+            return_tensors="pt",
+            truncation=True,
+            add_special_tokens=True,
+            max_length=128
+        )
+        
+    # 예측
+        with torch.no_grad():
+            outputs = model(
+                input_ids = tokenized_sent["input_ids"],
+                attention_mask=tokenized_sent["attention_mask"],
+                token_type_ids=tokenized_sent["token_type_ids"]
+            )
+
+    # 결과 return
+        logits = outputs[0]
+        logits = logits.detach().cpu()
+        prob = logits.softmax(dim=1)
+        x = ['기쁨', '슬픔', '분노', '불안', '당황', '상처']
+        y = [prob[0][0], prob[0][1], prob[0][2],prob[0][3],prob[0][4],prob[0][5]]
+
+        bar = plt.bar(x,y,color='slateblue')
+        for rect in bar:
+            height = rect.get_height()
+            plt.text(rect.get_x() + rect.get_width()/2.0, height, '%.1f' % height, ha='center', va='bottom', size = 10)
+            plt.title('감정 확률 분포포')
+            plt.legend(['감정'])
+            plt.show()
+
+        print(prob)
+        result = logits.argmax(-1)
+        if result == 0:
+            result = "기쁨 ㅎㅎ"
+        elif result == 1:
+            result = "슬픔 ㅠㅠ"
+        elif result == 2:
+            result = "분노 --"
+        elif result == 3: 
+            result = "불안... ㄷㄷㄷ"
+        elif result == 4:
+            result = "당황?!"
+        elif result == 5:
+            result = "상처...ㅠㅠㅠ"
+        return result
 
 parser = KoGPT2Chat.add_model_specific_args(parser)
 parser = Trainer.add_argparse_args(parser)
