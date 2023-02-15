@@ -4,9 +4,10 @@ import logging
 
 import numpy as np
 import pandas as pd
+import os
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.image as img
-plt.rcParams["font.family"] = "NanumGothic"
 import torch
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint
@@ -52,7 +53,18 @@ TOKENIZER = PreTrainedTokenizerFast.from_pretrained("skt/kogpt2-base-v2",
             bos_token=BOS, eos_token=EOS, unk_token='<unk>',
             pad_token=PAD, mask_token=MASK) 
 
-
+def fix_font():
+    # From https://HC.Dle.pw, By Jinseo Kim
+    # v1.0.0
+    os.system("apt-get install -y fonts-nanum")
+    os.system("fc-cache -fv")
+    mpl.font_manager._rebuild()
+    findfont = mpl.font_manager.fontManager.findfont
+    mpl.font_manager.findfont = findfont
+    mpl.backends.backend_agg.findfont = findfont
+    plt.rcParams['font.family'] = "NanumBarunGothic"
+    plt.rcParams['axes.unicode_minus'] = False
+           
 class CharDataset(Dataset):
     def __init__(self, chats, max_len=32):
         self._data = chats
@@ -195,6 +207,7 @@ class KoGPT2Chat(LightningModule):
         return train_dataloader
 
     def chat(self, sent='0'):
+        fix_font()
         graph = ShowEmotionGraph()
         tok = TOKENIZER
         sent_tokens = tok.tokenize(sent)
