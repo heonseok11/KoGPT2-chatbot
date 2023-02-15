@@ -2,6 +2,7 @@
 import argparse
 import logging
 
+from IPython.display import Image, display
 import numpy as np
 import pandas as pd
 import os
@@ -267,6 +268,7 @@ class ShowEmotionGraph():
         plt.title('감정 확률 분포포')
         plt.legend(['감정'])
         plt.savefig('fig1.png', dpi=300)
+        display(Image('fig1.png'))
         with Image.open('fig1.png') as img:
             img.show()
         plt.show()
