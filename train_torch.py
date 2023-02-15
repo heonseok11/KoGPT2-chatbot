@@ -193,17 +193,18 @@ class KoGPT2Chat(LightningModule):
         return train_dataloader
 
     def chat(self, sent='0'):
-        graph = ShowEmotionGraph()
+        
         tok = TOKENIZER
         sent_tokens = tok.tokenize(sent)
         with torch.no_grad():
             while 1:
-                q_temp = input('user > ')
+                q_temp = input("user > ")
+                
                 q = q_temp.strip()
                 if q == 'quit':
                     break
                 a = ''
-                print(graph.sentence_predict(q_temp))
+                print(ShowEmotionGraph(q_temp).sentence_predict())
                 while 1:
                     input_ids = torch.LongTensor(tok.encode(U_TKN + q + SENT + sent + S_TKN + a)).unsqueeze(dim=0)
                     pred = self(input_ids)
@@ -217,11 +218,12 @@ class KoGPT2Chat(LightningModule):
                 print("Simsimi > {}".format(a.strip()))
 
 class ShowEmotionGraph():
-    def __init__(self):
+    def __init__(self, sent):
         self.tokenizer = AutoTokenizer.from_pretrained("beomi/KcELECTRA-base-v2022")
         self.model = AutoModelForSequenceClassification.from_pretrained("JasonJeon/KcElectra_sentiment")
+        self.sent = sent
         
-    def sentence_predict(sent):
+    def sentence_predict():
     # 입력된 문장 토크나이징
         tokenized_sent = tokenizer(
             sent,
