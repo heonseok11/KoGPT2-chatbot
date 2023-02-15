@@ -233,6 +233,37 @@ class KoGPT2Chat(LightningModule):
                     a += gen.replace('▁', ' ')
                 print("Simsimi > {}".format(a.strip()))
 
+
+
+from IPython.display import HTML
+from base64 import b64encode
+
+def show_image(path_to_image, width=None, height=None):
+
+    mime_type = None
+    path_to_image = path_to_image.lower()
+
+    # More MIME types:
+    # https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types
+    if path_to_image.endswith('.jpg') or path_to_image.endswith('.jpeg'):
+        mime_type = 'image/jpeg'
+    elif path_to_image.endswith('.png'):
+        mime_type = 'image/png'
+    elif path_to_image.endswith('.gif'):
+        mime_type = 'image/gif'
+    else:
+        raise ValueError('Unknown extension: %s' % (path_to_image))
+
+    img = open(path_to_image, 'rb').read()
+    data_url = 'data:image/jpeg;base64,' + b64encode(img).decode()
+
+    width_str = "width='%d'" % (width) if width is not None else ''
+    height_str = "height='%d'" % (width) if height is not None else ''
+
+    display(HTML("<img src='%s' %s%s>" % (data_url, width_str, height_str)))
+
+
+
 class ShowEmotionGraph():
     def __init__(self):
         self.tokenizer = AutoTokenizer.from_pretrained("beomi/KcELECTRA-base-v2022")
@@ -268,10 +299,12 @@ class ShowEmotionGraph():
         plt.title('감정 확률 분포포')
         plt.legend(['감정'])
         plt.savefig('fig1.png', dpi=300)
-        display(Image('fig1.png'))
-        with Image.open('fig1.png') as img:
-            img.show()
-        plt.show()
+        
+        show_image('fig1.png', width=300)
+
+        #with Image.open('fig1.png') as img:
+         #   img.show()
+        #plt.show()
 
         print(prob)
         result = logits.argmax(-1)
