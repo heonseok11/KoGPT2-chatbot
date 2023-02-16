@@ -5,9 +5,12 @@ import logging
 import numpy as np
 import pandas as pd
 import os
+# do this before importing pylab or pyplot
+
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-plt.ion()
 import matplotlib.image as img
 import torch
 from pytorch_lightning import Trainer
@@ -267,9 +270,7 @@ class ShowEmotionGraph():
         plt.title('감정 확률 분포포')
         plt.legend(['감정'])
         
-        #plt.savefig('fig1.png', dpi=300)
-        #ndarray = img.imread('fig1.png')
-        #plt.imshow(ndarray)
+        plt.savefig('fig1.png', dpi=300)
         plt.show()
 
         print(prob)
