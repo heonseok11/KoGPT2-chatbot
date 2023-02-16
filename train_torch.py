@@ -7,6 +7,7 @@ import pandas as pd
 import os
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+plt.ion()
 import matplotlib.image as img
 import torch
 from pytorch_lightning import Trainer
@@ -265,9 +266,10 @@ class ShowEmotionGraph():
             plt.text(rect.get_x() + rect.get_width()/2.0, height, '%.1f' % height, ha='center', va='bottom', size = 10)
         plt.title('감정 확률 분포포')
         plt.legend(['감정'])
-        plt.savefig('fig1.png', dpi=300)
-        ndarray = img.imread('fig1.png')
-        plt.imshow(ndarray)
+        
+        #plt.savefig('fig1.png', dpi=300)
+        #ndarray = img.imread('fig1.png')
+        #plt.imshow(ndarray)
         plt.show()
 
         print(prob)
