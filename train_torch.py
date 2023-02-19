@@ -5,10 +5,7 @@ import logging
 import numpy as np
 import pandas as pd
 import os
-# do this before importing pylab or pyplot
-
-import matplotlib
-matplotlib.use('Agg')
+from datetime import date, datetime, timezone, timedelta
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.image as img
@@ -212,6 +209,9 @@ class KoGPT2Chat(LightningModule):
 
     def chat(self, sent='0'):
         fix_font()
+        num  = 0
+        time_list = []
+        emo_list = []
         graph = ShowEmotionGraph()
         tok = TOKENIZER
         sent_tokens = tok.tokenize(sent)
@@ -220,9 +220,18 @@ class KoGPT2Chat(LightningModule):
                 q_temp = input("user > ")
                 q = q_temp.strip()
                 if q == 'quit':
+                    graph.emotion_predict_result(time_list, emo_list, num)
                     break
                 a = ''
-                print(graph.sentence_predict(q_temp))
+                KST = timezone(timedelta(hours=9))
+                time_record = datetime.now(KST)
+                _time = str(time_record.time())[:8]
+                
+                emo_str, emo_int = graph.sentence_predict(q_temp, num)
+                print(emo_str)
+                time_list.append(_time)
+                emo_list.append(emo_int)
+                num += 1
                 while 1:
                     input_ids = torch.LongTensor(tok.encode(U_TKN + q + SENT + sent + S_TKN + a)).unsqueeze(dim=0)
                     pred = self(input_ids)
@@ -240,7 +249,7 @@ class ShowEmotionGraph():
         self.tokenizer = AutoTokenizer.from_pretrained("beomi/KcELECTRA-base-v2022")
         self.model = AutoModelForSequenceClassification.from_pretrained("JasonJeon/KcElectra_sentiment")
         
-    def sentence_predict(self, sent):
+    def sentence_predict(self, sent, num):
     # 입력된 문장 토크나이징
         tokenized_sent = self.tokenizer(
             sent,
@@ -255,39 +264,58 @@ class ShowEmotionGraph():
             attention_mask=tokenized_sent["attention_mask"],
             token_type_ids=tokenized_sent["token_type_ids"])
             
-
     # 결과 return
         logits = outputs[0]
         logits = logits.detach().cpu()
         prob = logits.softmax(dim=1)
-        x = ['기쁨', '슬픔', '분노', '불안', '당황', '상처']
-        y = [prob[0][0], prob[0][1], prob[0][2],prob[0][3],prob[0][4],prob[0][5]]
+        x = ['슬픔', '중립', '행복', '혐오', '분노', '공포', '놀람']
+        y = [prob[0][0], prob[0][1], prob[0][2],prob[0][3],prob[0][4],prob[0][5],prob[0][6]]
 
         bar = plt.bar(x,y,color='slateblue')
         for rect in bar:
             height = rect.get_height()
             plt.text(rect.get_x() + rect.get_width()/2.0, height, '%.1f' % height, ha='center', va='bottom', size = 10)
-        plt.title('감정 확률 분포포')
+        plt.title("문장: " + sent)
         plt.legend(['감정'])
-        
-        plt.savefig('fig1.png', dpi=300)
-        plt.show()
+        plt.savefig("fig" + str(num) + ".png", dpi=300)
+        plt.clf()
 
         print(prob)
         result = logits.argmax(-1)
         if result == 0:
-            result = "기쁨 ㅎㅎ"
+            result = "슬픔"
         elif result == 1:
-            result = "슬픔 ㅠㅠ"
+            result = "중립"
         elif result == 2:
-            result = "분노 --"
+            result = "행복"
         elif result == 3: 
-            result = "불안... ㄷㄷㄷ"
+            result = "혐오"
         elif result == 4:
-            result = "당황?!"
+            result = "분노"
         elif result == 5:
-            result = "상처...ㅠㅠㅠ"
-        return result
+            result = "공포"
+        elif result == 6:
+            result = "놀람"
+
+        return result, logits.argmax(-1)
+    
+    def emotion_predict_result(self, x, y, num):
+        time_list = x
+        emo_list = y
+        emo_label = ['슬픔', '중립', '행복', '혐오', '분노', '공포', '놀람']
+
+        fig = plt.figure(figsize=(12, 8))
+        ax = fig.add_subplot(1, 1, 1)
+
+        ax.plot(time_list, emo_list, color='red', linewidth=2)
+
+        ax.set_yticks([0, 1, 2, 3, 4, 5, 6])
+        ax.set_yticklabels(emo_label, fontsize=12)
+        for i in range(len(emo_list)):
+            ax.text(0.05 + i,emo_list[i],emo_label[emo_list[i]])
+        ax.set_xlabel('시간', fontsize=16)
+        ax.set_ylabel('감정 각성도', fontsize=16)
+        plt.savefig("fig" + str(num) + ".png", dpi=300)
 
 parser = KoGPT2Chat.add_model_specific_args(parser)
 parser = Trainer.add_argparse_args(parser)
